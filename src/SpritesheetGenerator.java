@@ -22,20 +22,38 @@ public class SpritesheetGenerator {
         view = new SGView( this );
     }
 
+    FileFilter filter_png = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            if( pathname.isFile() && pathname.getName().endsWith("png")) return true;
+            return false;
+        }
+    };
+    FileFilter filter_directory = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            if( pathname.isDirectory() ) return true;
+            return false;
+        }
+    };
+
     public void loadSprites( String importDirectory ) {
 
         model.reset();
         view.reset();
 
-        File importDirectoryFile = new File( importDirectory );
-        FileFilter filter = new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                if( pathname.isFile() && pathname.getName().endsWith("png")) return true;
-                return false;
-            }
-        };
-        File[] files = importDirectoryFile.listFiles( filter );
+        File sourceDirectoryRoot = new File( importDirectory );
+
+
+        Node<File> tree;
+        tree = loadImages( sourceDirectoryRoot, importDirectory );
+        //TODO: resolve subdirectories and load their files and make GUI.
+
+    }
+
+    private Node loadImages( File directory, String path ) {
+        Node<File> tree = new Node<>( null, directory, Node.FileType.DIRECTORY );
+        File[] files = directory.listFiles( filter_png );
         int fileSize = 0;
         if( files!= null && files.length!=0 ) {
             List<String> filenames = new ArrayList<>();
@@ -46,40 +64,50 @@ public class SpritesheetGenerator {
 
             Collections.sort( filenames );
 
-            JOptionPane.showMessageDialog( view, "Order of Elements: " + filenames.get(0) + "; " + filenames.get(1) + "; " + filenames.get(2) + "; " + filenames.get(3) + "; ...");
+            //JOptionPane.showMessageDialog( view, "Order of Elements: " + filenames.get(0) + "; " + filenames.get(1) + "; " + filenames.get(2) + "; " + filenames.get(3) + "; ...");
 
             int u=0;
-            for( String name : filenames ) {
-                File file = new File( importDirectory + File.separator + name );
+            if( model.getFfstate()== SGModel.FileFilterState.ODD ) u++;
+            for( ; u<filenames.size(); ) {
+                String name = filenames.get(u);
+                File file = new File( path + File.separator + name );
                 BufferedImage img = null;
                 try{
                     img = ImageIO.read( file );
                 }catch ( IOException e ) {
                 }
 
+                //JOptionPane.showMessageDialog( view, ""+ name );
+
                 if( img != null ) {
+
+                    tree.addNode( new Node<BufferedImage>( img, Node.FileType.FILE ) );
+
                     model.addSprite( img );
                     model.addHeight( img.getHeight() );
                     model.addWidth( img.getWidth() );
                 }else if( u<=3 ) {
-                    JOptionPane.showMessageDialog( view, "img==null :(  ... File: " + file.getName() + ";  exists=" + file.exists() + ";  importDirectory: " + importDirectory );
+                    JOptionPane.showMessageDialog( view, "img==null :(  ... File: " + file.getName() + ";  exists=" + file.exists() + ";  importDirectory: " + path );
                 }
-                u++;
+
+                switch ( model.getFfstate() ) {
+                    case ALL:
+                        u++;
+                        break;
+                    case EVEN:
+                    case ODD:
+                        u+=2;
+                        break;
+                }
             }
 
-            if( model.getSprites().size() != filenames.size() ) {
-                JOptionPane.showMessageDialog(view, "An Error occured while loading the sprites: Model: " + model.getSprites().size() + ";  filenames: " +  filenames.size());
-                model.reset();
-                view.reset();
-            }else if( !model.heightsAreEqual() ) {
-                JOptionPane.showMessageDialog( view, "The images are not equal in height.");
-                model.reset();
-                view.reset();
-            }else if( !model.widthsAreEqual() ) {
-                JOptionPane.showMessageDialog( view, "The images are not equal in width.");
+            if( !model.heightsAreEqual() ) {
+                JOptionPane.showMessageDialog(view, "The images are not equal in height.");
                 model.reset();
                 view.reset();
             }else {
+                if( !model.widthsAreEqual() )
+                    JOptionPane.showMessageDialog( view, "The images are not equal in width. The spritesheet WILL be generated, but better check, if all is right!");
                 view.setSpriteAmount( model.getSprites().size() );
                 view.setSpriteWidth(model.getSprites().get(0).getWidth());
                 view.setSpriteHeight(model.getSprites().get(0).getHeight());
@@ -91,6 +119,8 @@ public class SpritesheetGenerator {
         }else {
             JOptionPane.showMessageDialog(view, "No sprites (png files) detected!");
         }
+
+        return tree;
     }
 
     public void saveSpritesheet( String exportPath ) {
@@ -105,9 +135,9 @@ public class SpritesheetGenerator {
                 //        + finalSpriteSheet.getWidth() +", " +finalSpriteSheet.getHeight());
                 for (int i = 0; i < model.getSprites().size(); i++) {
                     BufferedImage image = model.getSprites().get(i);
-                    finalSpriteSheet.createGraphics().drawImage(image, width * i, 0, null);
+                    finalSpriteSheet.createGraphics().drawImage(image, model.getWidthTo(i), 0, null);
                 }
-                view.setImageLabel( finalSpriteSheet );
+                view.setImageLabel(finalSpriteSheet);
 
                 if( !exportPath.endsWith("png")) exportPath+=".png";
 
@@ -127,5 +157,9 @@ public class SpritesheetGenerator {
 
     public static void main(String[] args) {
         SpritesheetGenerator sg = new SpritesheetGenerator();
+    }
+
+    public int nextState() {
+        return model.nextState();
     }
 }
