@@ -12,6 +12,22 @@ public class SGModel {
 
     private List<BufferedImage> sprites = null;
 
+    private Node nodes = null;
+
+
+    public enum FileFilterState {
+        ALL,
+        EVEN,
+        ODD;
+
+        private static FileFilterState[] vals = values();
+
+        public FileFilterState next() {
+            return vals[(this.ordinal()+1)%vals.length];
+        }
+    }
+
+    private FileFilterState ffstate = null;
 
     private List<Integer> heights = null;
     private List<Integer> widths = null;
@@ -21,12 +37,23 @@ public class SGModel {
         sprites = new ArrayList<BufferedImage>();
         heights = new ArrayList<>();
         widths = new ArrayList<>();
+        ffstate = FileFilterState.ALL;
+    }
+
+    public int nextState() {
+        ffstate = ffstate.next();
+        return ffstate.ordinal();
+    }
+
+    public FileFilterState getFfstate() {
+        return ffstate;
     }
 
     public void reset() {
         sprites = new ArrayList<BufferedImage>();
         heights = new ArrayList<>();
         widths = new ArrayList<>();
+        //ffstate = FileFilterState.ALL;
     }
 
     public List<BufferedImage> getSprites() {
@@ -79,8 +106,17 @@ public class SGModel {
     }
 
     public int getTotalWidth() {
+        return getWidthTo( sprites.size() );
+    }
+
+    public int getWidthTo( int index ) {
+        int totalWidth = 0;
+        if( index > sprites.size() ) index = sprites.size();
         if( sprites != null && !sprites.isEmpty() ) {
-            return sprites.size() * sprites.get(0).getWidth();
+            for( int i=0; i<index; i++ ) {
+                totalWidth += sprites.get(i).getWidth();
+            }
+            return totalWidth;
         }
         return -1;
     }

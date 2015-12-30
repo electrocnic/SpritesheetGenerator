@@ -42,8 +42,11 @@ public class SGView extends JFrame implements ActionListener {
     private JLabel label_total_file_size = null;
     private JLabel label_total_file_size_val = null;
 
+    private static final String[] selectorText = { "Selecting ALL files...", "Selecting EVEN files...", "Selecting ODD files..." };
+
     private JButton button_start = null;
 
+    private JButton button_ffState = null;
 
     private JLabel label_image_preview = null;
 
@@ -109,6 +112,10 @@ public class SGView extends JFrame implements ActionListener {
 
         /** Status **/
 
+        button_ffState = new JButton( selectorText[0] );
+        button_ffState.addActionListener(this);
+
+
         button_load = new JButton("Load");
         button_load.addActionListener(this);
         button_load.setHorizontalAlignment(SwingConstants.CENTER);
@@ -154,8 +161,12 @@ public class SGView extends JFrame implements ActionListener {
 
         /** Layout for Status **/
 
+        JPanel twoButtons = new JPanel();
+        twoButtons.add( button_ffState );
+        twoButtons.add( button_load );
+
         JPanel panel_loadButton_statusTitle = new JPanel( new BorderLayout(5,5));
-        panel_loadButton_statusTitle.add( button_load, BorderLayout.NORTH );
+        panel_loadButton_statusTitle.add( twoButtons, BorderLayout.NORTH );
         panel_loadButton_statusTitle.add( label_status_title, BorderLayout.CENTER );
 
         JPanel panel_2_ImageCount = new JPanel( new BorderLayout(5,5));
@@ -267,6 +278,8 @@ public class SGView extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog( this,
                         "No destination path chosen yet!" );
             }
+        }else if( e.getSource() == button_ffState ) {
+            button_ffState.setText( selectorText[controller.nextState()] );
         }
     }
 
@@ -281,6 +294,7 @@ public class SGView extends JFrame implements ActionListener {
         label_width_val.setText("");
         label_total_width_val.setText("");
         label_total_file_size_val.setText("");
+        //button_ffState.setText( selectorText[0] );
     }
 
     public void setSpriteAmount(int length) {
