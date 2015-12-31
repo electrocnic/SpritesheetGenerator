@@ -12,6 +12,9 @@ public class Node<T> {
     private List<Node<File>> directories=null;
     private FileType type = null;
 
+    private int customFilterValue = 1; //local custom file filter, only for this spritesheet.
+    private int totalFileSize = 0;
+
     public enum FileType {
         FILE,
         DIRECTORY;
@@ -25,16 +28,26 @@ public class Node<T> {
         this.data = data;
         this.type = type;
         this.parent = parent;
+        files = new ArrayList<Node>();
+        directories = new ArrayList<Node<File>>();
     }
 
     public void addNode( Node node ) {
         if( files==null ) files = new ArrayList<Node>();
-        files.add( new Node((Node<File>) this, node.getData(), FileType.FILE ));
+        files.add(new Node((Node<File>) this, node.getData(), FileType.FILE));
     }
 
     public void addDirectory( File directory ) {
         if( directories==null ) directories = new ArrayList<Node<File>>();
-        directories.add( new Node<>((Node<File>) this, directory, FileType.DIRECTORY ));
+        directories.add( new Node((Node<File>) this, directory, FileType.DIRECTORY ));
+    }
+
+    public void setData( T data ) {
+        this.data = data;
+    }
+
+    public void setType( FileType type ) {
+        this.type = type;
     }
 
     public T getData() {
@@ -47,6 +60,52 @@ public class Node<T> {
 
     public FileType getType() {
         return type;
+    }
+
+    public Node getFileAt( int index ) {
+        if( index < files.size() ) {
+            return files.get(index);
+        }else return null;
+    }
+
+    public Node<File> getDirectoryAt( int index ) {
+        if( index < directories.size() ) {
+            return directories.get( index );
+        }else return null;
+    }
+
+    /**
+     * Sets the size of this node. The size of this node represents only the total size of all FILES in this node,
+     * not including subdirectories. If this node IS already a file, this value represents the size of this one file.
+     * @param size
+     */
+    public void setFileSize( int size ) {
+        this.totalFileSize = size;
+    }
+
+    /**
+     * Gets the size of this node. The size of this node represents only the total size of all FILES in this node,
+     * not including subdirectories. If this node IS already a file, this value represents the size of this one file.
+     * @return
+     */
+    public int getTotalFileSize() {
+        return totalFileSize;
+    }
+
+    public void setCustomFilterValue( int value ) {
+        this.customFilterValue = value;
+    }
+
+    public int getCustomFilterValue() {
+        return this.customFilterValue;
+    }
+
+    public int getFileAmount() {
+        return files.size();
+    }
+
+    public int getDirectoryAmount() {
+        return directories.size();
     }
 }
 

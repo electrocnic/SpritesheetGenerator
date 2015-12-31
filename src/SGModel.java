@@ -13,12 +13,13 @@ public class SGModel {
     private List<BufferedImage> sprites = null;
 
     private Node nodes = null;
-
+    private int customFilterValue = 30; //global custom file filter for all spritesheets equally.
 
     public enum FileFilterState {
         ALL,
         EVEN,
-        ODD;
+        ODD,
+        CUSTOM;
 
         private static FileFilterState[] vals = values();
 
@@ -31,6 +32,7 @@ public class SGModel {
 
     private List<Integer> heights = null;
     private List<Integer> widths = null;
+
 
     public SGModel( SpritesheetGenerator controller ) {
         this.controller = controller;
@@ -140,5 +142,13 @@ public class SGModel {
             return sprites.get(0).getWidth();
         }
         return -1;
+    }
+
+    public void setCustomFilterValue( int value ) {
+        this.customFilterValue = value;
+    }
+
+    public int getCustomFilterValue() {
+        return this.customFilterValue;
     }
 }
