@@ -14,8 +14,8 @@ import java.io.File;
  */
 public class SGView extends JFrame implements ActionListener {
 
-    public static final int WIDTH = 500;
-    public static final int HEIGHT = 400;
+    public static final int WIDTH = 700;
+    public static final int HEIGHT = 1000;
 
     private SpritesheetGenerator controller = null;
 
@@ -30,6 +30,9 @@ public class SGView extends JFrame implements ActionListener {
     private JTextField textField_exportFile = null;
     private JButton button_exportFile = null;
     private JPanel panel_exportFile = null;
+
+    private JLabel label_globalSettings = null;
+
 
     private JButton button_load = null;
     private JLabel label_status_title = null;
@@ -91,6 +94,8 @@ public class SGView extends JFrame implements ActionListener {
 
 
         /** Export File **/
+
+        /*
         label_exportFile = new JLabel("Destination");
         font = label_exportFile.getFont();
         boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
@@ -111,9 +116,12 @@ public class SGView extends JFrame implements ActionListener {
 
         JPanel panel_export = new JPanel( new BorderLayout(5,5) );
         panel_export.add(panel_exportFile, BorderLayout.NORTH);
+        */
+
+        label_globalSettings = new JLabel("Global Settings:");
 
 
-        /** Status **/
+
 
         button_ffState = new JButton( selectorText[0] );
         button_ffState.addActionListener(this);
@@ -124,10 +132,13 @@ public class SGView extends JFrame implements ActionListener {
         textField_customFilter.setPreferredSize(new Dimension(100, 25));
 
 
-
         button_load = new JButton("Load");
         button_load.addActionListener(this);
         button_load.setHorizontalAlignment(SwingConstants.CENTER);
+
+
+
+        /** Status **/
 
         label_status_title = new JLabel("--- Status ---");
         font = label_status_title.getFont();
@@ -171,12 +182,23 @@ public class SGView extends JFrame implements ActionListener {
         /** Layout for Status **/
 
         JPanel twoButtons = new JPanel();
-        twoButtons.add( button_ffState );
-        twoButtons.add( textField_customFilter );
+        //twoButtons.add( button_ffState );
+        //twoButtons.add( textField_customFilter );
         twoButtons.add( button_load );
 
+        JPanel load_GlobalSettings = new JPanel(new BorderLayout(5,5));
+        load_GlobalSettings.add( twoButtons, BorderLayout.NORTH );
+        load_GlobalSettings.add( label_globalSettings, BorderLayout.CENTER );
+
+        JPanel load_globalSettings_Button = new JPanel(new BorderLayout(5,5));
+        JPanel global_settings_Button = new JPanel();
+        global_settings_Button.add( button_ffState );
+        global_settings_Button.add( textField_customFilter );
+        load_globalSettings_Button.add( load_GlobalSettings, BorderLayout.NORTH );
+        load_globalSettings_Button.add( global_settings_Button, BorderLayout.CENTER );
+
         JPanel panel_loadButton_statusTitle = new JPanel( new BorderLayout(5,5));
-        panel_loadButton_statusTitle.add( twoButtons, BorderLayout.NORTH );
+        panel_loadButton_statusTitle.add( load_globalSettings_Button, BorderLayout.NORTH );
         panel_loadButton_statusTitle.add( label_status_title, BorderLayout.CENTER );
 
         JPanel panel_2_ImageCount = new JPanel( new BorderLayout(5,5));
@@ -214,11 +236,11 @@ public class SGView extends JFrame implements ActionListener {
 
         JPanel panel_directories = new JPanel( new BorderLayout(5,5));
         panel_directories.add( panel_import, BorderLayout.NORTH );
-        panel_directories.add(panel_export, BorderLayout.CENTER);
+        //panel_directories.add(panel_export, BorderLayout.CENTER);
 
         JPanel directories_statusField = new JPanel( new BorderLayout(5,5));
         directories_statusField.add( panel_directories, BorderLayout.NORTH );
-        directories_statusField.add(panel_7_startButton, BorderLayout.CENTER);
+        directories_statusField.add( panel_7_startButton, BorderLayout.CENTER );
 
         JPanel last_imageprev = new JPanel( new BorderLayout(5,5));
         last_imageprev.add( directories_statusField, BorderLayout.NORTH );

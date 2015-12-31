@@ -11,9 +11,9 @@ public class Node<T> {
     private List<Node> files=null;
     private List<Node<File>> directories=null;
     private FileType type = null;
-
     private int customFilterValue = 1; //local custom file filter, only for this spritesheet.
     private int totalFileSize = 0;
+    private String destinationPath = "";
 
     public enum FileType {
         FILE,
@@ -32,14 +32,24 @@ public class Node<T> {
         directories = new ArrayList<Node<File>>();
     }
 
-    public void addNode( Node node ) {
+    public void addFile( Node node ) {
         if( files==null ) files = new ArrayList<Node>();
         files.add(new Node((Node<File>) this, node.getData(), FileType.FILE));
+    }
+
+    public void addFile( T file ) {
+        if( files==null ) files = new ArrayList<Node>();
+        files.add(new Node((Node<File>) this, file, FileType.FILE));
     }
 
     public void addDirectory( File directory ) {
         if( directories==null ) directories = new ArrayList<Node<File>>();
         directories.add( new Node((Node<File>) this, directory, FileType.DIRECTORY ));
+    }
+
+    public void addDirectory( Node node ) {
+        if( directories==null ) directories = new ArrayList<Node<File>>();
+        directories.add( new Node((Node<File>) this, node.getData(), FileType.DIRECTORY ));
     }
 
     public void setData( T data ) {
@@ -106,6 +116,22 @@ public class Node<T> {
 
     public int getDirectoryAmount() {
         return directories.size();
+    }
+
+    /**
+     * Gets the path of the directory, where the final spritesheet for this node's elements should be located.
+     * @return
+     */
+    public String getDestinationPath() {
+        return destinationPath;
+    }
+
+    /**
+     * Sets the path of the directory, where the final spritesheet for this node's elements should be located.
+     * @param destinationPath
+     */
+    public void setDestinationPath( String destinationPath ) {
+        this.destinationPath = destinationPath;
     }
 }
 

@@ -24,31 +24,42 @@ public class SpritesheetGenerator {
 
     FileFilter filter_png = new FileFilter() {
         @Override
-        public boolean accept(File pathname) {
-            if( pathname.isFile() && pathname.getName().endsWith("png")) return true;
-            return false;
+        public boolean accept(File pathname) {return (pathname.isFile() && pathname.getName().endsWith("png"));
         }
     };
     FileFilter filter_directory = new FileFilter() {
         @Override
         public boolean accept(File pathname) {
-            if( pathname.isDirectory() ) return true;
-            return false;
+            return pathname.isDirectory();
         }
     };
 
-    public void loadSprites( String importDirectory ) {
 
+    public void loadSprites( String importDirectory ) {
         model.reset();
         view.reset();
 
+        Node<File> tree = loadSprites( new File( importDirectory ));
+        model.setTree( tree );
 
+        //TODO: make GUI.
 
+    }
 
-        Node<File> tree;
-        tree = loadImages( importDirectory );
-        //TODO: resolve subdirectories and load their files and make GUI.
+    /**
+     * Creates a new SubTree which consists of all Images and subdirectories within the given directory.
+     * @param directory
+     * @return
+     */
+    public Node<File> loadSprites( File directory ) {
+        Node<File> subTree=null;
+        subTree = loadImages( subTree, directory );
 
+        File[] directories = directory.listFiles( filter_directory );
+        for( File subDirectory : directories ) {
+            subTree.addDirectory( loadSprites( subDirectory ));
+        }
+        return subTree;
     }
 
     /**
@@ -61,15 +72,20 @@ public class SpritesheetGenerator {
         return loadImages( null, path );
     }
 
+    public Node<File> loadImages( Node<File> tree, String path ) {
+        File directory = new File( path );
+        return loadImages( tree, directory );
+    }
+
     /**
      * Loads the bufferedImages in the given directory to a new Tree. The head of the tree is a Node with type = directory
      * which contains images, which are also nodes, but from the type "file".
      * @param tree The Node where the images should be added.
-     * @param path The path of the directory, where the images are located.
+     * @param directory The file of the directory, where the images are located.
      * @return The tree with the images added.
      */
-    public Node<File> loadImages( Node<File> tree, String path ) {
-        File directory = new File( path );
+    public Node<File> loadImages( Node<File> tree, File directory ) {
+
         if( tree==null ) tree = new Node<File>( null, directory, Node.FileType.DIRECTORY );
         File[] files = directory.listFiles( filter_png );
         int fileSize = 0;
@@ -78,7 +94,7 @@ public class SpritesheetGenerator {
 
             for( int u=0; u<filenames.size(); u++) {
                 String name = filenames.get(u);
-                File file = new File( path + File.separator + name );
+                File file = new File( directory.getAbsolutePath() + File.separator + name );
                 fileSize += file.length();
                 BufferedImage img = null;
                 try{
@@ -87,13 +103,13 @@ public class SpritesheetGenerator {
                 }
 
                 if( img != null ) {
-                    tree.addNode( new Node<BufferedImage>( img, Node.FileType.FILE ) );
+                    tree.addFile(new Node<BufferedImage>(img, Node.FileType.FILE));
 
                     model.addSprite( img );
                     model.addHeight( img.getHeight() );
                     model.addWidth( img.getWidth() );
                 }else if( u<=3 ) {
-                    JOptionPane.showMessageDialog( view, "img==null :(  ... File: " + file.getName() + ";  exists=" + file.exists() + ";  importDirectory: " + path );
+                    JOptionPane.showMessageDialog( view, "img==null :(  ... File: " + file.getName() + ";  exists=" + file.exists() + ";  importDirectory: " + directory.getAbsolutePath() );
                 }
             }
 
@@ -153,7 +169,7 @@ public class SpritesheetGenerator {
 
         for( ; u<tree.getFileAmount(); ) {
 
-            newTree.addNode(new Node<BufferedImage>((BufferedImage) tree.getFileAt(u).getData(), Node.FileType.FILE));
+            newTree.addFile(new Node<BufferedImage>((BufferedImage) tree.getFileAt(u).getData(), Node.FileType.FILE));
 
             switch ( model.getFfstate() ) {
                 case ALL:
