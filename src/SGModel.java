@@ -1,4 +1,5 @@
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,13 +13,14 @@ public class SGModel {
 
     private List<BufferedImage> sprites = null;
 
-    private Node nodes = null;
-
+    private Node tree = null;
+    private int customFilterValue = 30; //global custom file filter for all spritesheets equally.
 
     public enum FileFilterState {
         ALL,
         EVEN,
-        ODD;
+        ODD,
+        CUSTOM;
 
         private static FileFilterState[] vals = values();
 
@@ -31,6 +33,7 @@ public class SGModel {
 
     private List<Integer> heights = null;
     private List<Integer> widths = null;
+
 
     public SGModel( SpritesheetGenerator controller ) {
         this.controller = controller;
@@ -140,5 +143,21 @@ public class SGModel {
             return sprites.get(0).getWidth();
         }
         return -1;
+    }
+
+    public void setCustomFilterValue( int value ) {
+        this.customFilterValue = value;
+    }
+
+    public int getCustomFilterValue() {
+        return this.customFilterValue;
+    }
+
+    public Node<File> getTree() {
+        return tree;
+    }
+
+    public void setTree( Node<File> tree ) {
+        this.tree = tree;
     }
 }

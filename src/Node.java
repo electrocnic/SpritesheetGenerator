@@ -11,6 +11,9 @@ public class Node<T> {
     private List<Node> files=null;
     private List<Node<File>> directories=null;
     private FileType type = null;
+    private int customFilterValue = 1; //local custom file filter, only for this spritesheet.
+    private int totalFileSize = 0;
+    private String destinationPath = "";
 
     public enum FileType {
         FILE,
@@ -22,19 +25,60 @@ public class Node<T> {
     }
 
     public Node( Node<File> parent, T data, FileType type ) {
+        this( parent, data, type, null, null, 1, 0, "" );
+    }
+
+    public Node( Node<File> parent, T data, FileType type, List<Node> files, List<Node<File>> directories, int customFilterValue, int totalFileSize, String destinationPath ) {
         this.data = data;
         this.type = type;
         this.parent = parent;
+        this.files = new ArrayList<Node>();
+        if(files!=null) {
+           for( Node file : files ) {
+               this.files.add( file );
+           }
+        }
+        this.directories = new ArrayList<Node<File>>();
+        if(directories!=null) {
+            for( Node<File> directory : directories ) {
+                this.directories.add( directory );
+            }
+        }
+        this.customFilterValue = customFilterValue;
+        this.totalFileSize = totalFileSize;
+        this.destinationPath = destinationPath;
     }
 
-    public void addNode( Node node ) {
+    public Node( Node<T> node ) {
+        this( node.parent, node.data, node.type, node.files, node.directories, node.customFilterValue, node.totalFileSize, node.destinationPath );
+    }
+
+    public void addFile( Node node ) {
         if( files==null ) files = new ArrayList<Node>();
-        files.add( new Node((Node<File>) this, node.getData(), FileType.FILE ));
+        files.add(new Node( node ));
+    }
+
+    public void addFile( T file ) {
+        if( files==null ) files = new ArrayList<Node>();
+        files.add(new Node((Node<File>) this, file, FileType.FILE));
     }
 
     public void addDirectory( File directory ) {
         if( directories==null ) directories = new ArrayList<Node<File>>();
-        directories.add( new Node<>((Node<File>) this, directory, FileType.DIRECTORY ));
+        directories.add( new Node((Node<File>) this, directory, FileType.DIRECTORY ));
+    }
+
+    public void addDirectory( Node node ) {
+        if( directories==null ) directories = new ArrayList<Node<File>>();
+        directories.add( new Node(node));
+    }
+
+    public void setData( T data ) {
+        this.data = data;
+    }
+
+    public void setType( FileType type ) {
+        this.type = type;
     }
 
     public T getData() {
@@ -47,6 +91,68 @@ public class Node<T> {
 
     public FileType getType() {
         return type;
+    }
+
+    public Node getFileAt( int index ) {
+        if( index < files.size() ) {
+            return files.get(index);
+        }else return null;
+    }
+
+    public Node<File> getDirectoryAt( int index ) {
+        if( index < directories.size() ) {
+            return directories.get( index );
+        }else return null;
+    }
+
+    /**
+     * Sets the size of this node. The size of this node represents only the total size of all FILES in this node,
+     * not including subdirectories. If this node IS already a file, this value represents the size of this one file.
+     * @param size
+     */
+    public void setFileSize( int size ) {
+        this.totalFileSize = size;
+    }
+
+    /**
+     * Gets the size of this node. The size of this node represents only the total size of all FILES in this node,
+     * not including subdirectories. If this node IS already a file, this value represents the size of this one file.
+     * @return
+     */
+    public int getTotalFileSize() {
+        return totalFileSize;
+    }
+
+    public void setCustomFilterValue( int value ) {
+        this.customFilterValue = value;
+    }
+
+    public int getCustomFilterValue() {
+        return this.customFilterValue;
+    }
+
+    public int getFileAmount() {
+        return files.size();
+    }
+
+    public int getDirectoryAmount() {
+        return directories.size();
+    }
+
+    /**
+     * Gets the path of the directory, where the final spritesheet for this node's elements should be located.
+     * @return
+     */
+    public String getDestinationPath() {
+        return destinationPath;
+    }
+
+    /**
+     * Sets the path of the directory, where the final spritesheet for this node's elements should be located.
+     * @param destinationPath
+     */
+    public void setDestinationPath( String destinationPath ) {
+        this.destinationPath = destinationPath;
     }
 }
 
