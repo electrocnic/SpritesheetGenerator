@@ -1,3 +1,5 @@
+import sun.rmi.runtime.Log;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
@@ -40,9 +42,10 @@ public class SpritesheetGenerator {
         view.reset();
 
         Node<File> tree = loadSprites( new File( importDirectory ));
+        System.out.println( "finished" );
         model.setTree( tree );
 
-        //TODO: make GUI.
+        //TODO: make GUI. (vorher: make input dialogs at render. with filechoosers...)
 
     }
 
@@ -55,9 +58,14 @@ public class SpritesheetGenerator {
         Node<File> subTree=null;
         subTree = loadImages( subTree, directory );
 
+        System.out.println(".");
+
         File[] directories = directory.listFiles( filter_directory );
+        int i=0;
         for( File subDirectory : directories ) {
-            subTree.addDirectory( loadSprites( subDirectory ));
+            System.out.println( i );
+            subTree.addDirectory(loadSprites(subDirectory));
+            i++;
         }
         return subTree;
     }
@@ -113,6 +121,7 @@ public class SpritesheetGenerator {
                 }
             }
 
+            /**
             if( !model.heightsAreEqual() ) {
                 JOptionPane.showMessageDialog(view, "The images are not equal in height.");
                 model.reset();
@@ -127,9 +136,9 @@ public class SpritesheetGenerator {
                 view.setTotalWidth(model.getSprites().size() * model.getSprites().get(0).getWidth());
                 view.setTotalFileSize(fileSize / 1024);
                 view.setImageLabel( model.getSprites().get(0));
-                */
+                *
                 //TODO: set above information for nodes not for view.
-            }
+            } */
 
         }else { //just no "files" in this directory, but maybe in a subdirectory.
             //JOptionPane.showMessageDialog(view, "No sprites (png files) detected!");

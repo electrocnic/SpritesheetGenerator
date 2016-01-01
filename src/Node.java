@@ -25,16 +25,37 @@ public class Node<T> {
     }
 
     public Node( Node<File> parent, T data, FileType type ) {
+        this( parent, data, type, null, null, 1, 0, "" );
+    }
+
+    public Node( Node<File> parent, T data, FileType type, List<Node> files, List<Node<File>> directories, int customFilterValue, int totalFileSize, String destinationPath ) {
         this.data = data;
         this.type = type;
         this.parent = parent;
-        files = new ArrayList<Node>();
-        directories = new ArrayList<Node<File>>();
+        this.files = new ArrayList<Node>();
+        if(files!=null) {
+           for( Node file : files ) {
+               this.files.add( file );
+           }
+        }
+        this.directories = new ArrayList<Node<File>>();
+        if(directories!=null) {
+            for( Node<File> directory : directories ) {
+                this.directories.add( directory );
+            }
+        }
+        this.customFilterValue = customFilterValue;
+        this.totalFileSize = totalFileSize;
+        this.destinationPath = destinationPath;
+    }
+
+    public Node( Node<T> node ) {
+        this( node.parent, node.data, node.type, node.files, node.directories, node.customFilterValue, node.totalFileSize, node.destinationPath );
     }
 
     public void addFile( Node node ) {
         if( files==null ) files = new ArrayList<Node>();
-        files.add(new Node((Node<File>) this, node.getData(), FileType.FILE));
+        files.add(new Node( node ));
     }
 
     public void addFile( T file ) {
@@ -49,7 +70,7 @@ public class Node<T> {
 
     public void addDirectory( Node node ) {
         if( directories==null ) directories = new ArrayList<Node<File>>();
-        directories.add( new Node((Node<File>) this, node.getData(), FileType.DIRECTORY ));
+        directories.add( new Node(node));
     }
 
     public void setData( T data ) {

@@ -201,6 +201,9 @@ public class SGView extends JFrame implements ActionListener {
         panel_loadButton_statusTitle.add( load_globalSettings_Button, BorderLayout.NORTH );
         panel_loadButton_statusTitle.add( label_status_title, BorderLayout.CENTER );
 
+        //TODO add scrollbars somewhere. and the rest.
+
+
         JPanel panel_2_ImageCount = new JPanel( new BorderLayout(5,5));
         panel_2_ImageCount.add( panel_loadButton_statusTitle, BorderLayout.NORTH );
         panel_2_ImageCount.add( panel_imageCount );
