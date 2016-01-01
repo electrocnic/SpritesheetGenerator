@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ public class Node<T> {
     private int customFilterValue = 1; //local custom file filter, only for this spritesheet.
     private int totalFileSize = 0;
     private String destinationPath = "";
+    private boolean isActive = true;
 
     public enum FileType {
         FILE,
@@ -50,27 +52,37 @@ public class Node<T> {
     }
 
     public Node( Node<T> node ) {
-        this( node.parent, node.data, node.type, node.files, node.directories, node.customFilterValue, node.totalFileSize, node.destinationPath );
+        this(node.parent, node.data, node.type, node.files, node.directories, node.customFilterValue, node.totalFileSize, node.destinationPath);
     }
 
     public void addFile( Node node ) {
-        if( files==null ) files = new ArrayList<Node>();
-        files.add(new Node( node ));
+        if( node != null ) {
+            if (files == null) files = new ArrayList<Node>();
+            node.setParent( this );
+            files.add(new Node(node));
+        }
     }
 
     public void addFile( T file ) {
-        if( files==null ) files = new ArrayList<Node>();
-        files.add(new Node((Node<File>) this, file, FileType.FILE));
+        if( file != null ) {
+            if (files == null) files = new ArrayList<Node>();
+            files.add(new Node((Node<File>) this, file, FileType.FILE));
+        }
     }
 
     public void addDirectory( File directory ) {
-        if( directories==null ) directories = new ArrayList<Node<File>>();
-        directories.add( new Node((Node<File>) this, directory, FileType.DIRECTORY ));
+        if( directory != null ) {
+            if (directories == null) directories = new ArrayList<Node<File>>();
+            directories.add(new Node((Node<File>) this, directory, FileType.DIRECTORY));
+        }
     }
 
-    public void addDirectory( Node node ) {
-        if( directories==null ) directories = new ArrayList<Node<File>>();
-        directories.add( new Node(node));
+    public void addDirectory(Node node) {
+        if (node != null) {
+            if (directories == null) directories = new ArrayList<Node<File>>();
+            node.setParent(this);
+            directories.add(new Node(node));
+        }
     }
 
     public void setData( T data ) {
@@ -93,7 +105,7 @@ public class Node<T> {
         return type;
     }
 
-    public Node getFileAt( int index ) {
+    public Node<BufferedImage> getFileAt( int index ) {
         if( index < files.size() ) {
             return files.get(index);
         }else return null;
@@ -131,6 +143,12 @@ public class Node<T> {
         return this.customFilterValue;
     }
 
+    public void updateCustomFilterValueToALL() {
+        if( files!=null ) {
+            this.customFilterValue = files.size();
+        }
+    }
+
     public int getFileAmount() {
         return files.size();
     }
@@ -153,6 +171,39 @@ public class Node<T> {
      */
     public void setDestinationPath( String destinationPath ) {
         this.destinationPath = destinationPath;
+    }
+
+    public void setActive( boolean isActive ) {
+        this.isActive = isActive;
+    }
+
+    public boolean isActive() {
+        return this.isActive;
+    }
+
+    public boolean hasSubDirectories() {
+        return (directories != null && !directories.isEmpty());
+    }
+
+    public void setParent(Node<File> parent) {
+        this.parent = parent;
+    }
+
+    public boolean hasFiles() {
+        return ( files != null && !files.isEmpty() );
+    }
+
+    public int getTotalWidth() {
+        int width =0;
+        for( Node<BufferedImage> node : files ) {
+            width += node.getData().getWidth();
+        }
+        return width;
+    }
+
+    public int getHeight() {
+        if( files!=null && !files.isEmpty() ) return files.get(0).getHeight(); //TODO resolve empty array error?!
+        else return 0;
     }
 }
 

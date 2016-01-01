@@ -12,9 +12,13 @@ public class SGModel {
     private SpritesheetGenerator controller = null;
 
     private List<BufferedImage> sprites = null;
+    private List<Node<File>> directories = null;
 
     private Node tree = null;
     private int customFilterValue = 30; //global custom file filter for all spritesheets equally.
+
+    private int currentDirectoryIndex = 0;
+
 
     public enum FileFilterState {
         ALL,
@@ -40,6 +44,7 @@ public class SGModel {
         sprites = new ArrayList<BufferedImage>();
         heights = new ArrayList<>();
         widths = new ArrayList<>();
+        directories = new ArrayList<>();
         ffstate = FileFilterState.ALL;
     }
 
@@ -56,6 +61,7 @@ public class SGModel {
         sprites = new ArrayList<BufferedImage>();
         heights = new ArrayList<>();
         widths = new ArrayList<>();
+        directories = new ArrayList<>();
         //ffstate = FileFilterState.ALL;
     }
 
@@ -77,6 +83,14 @@ public class SGModel {
 
     public void addWidth( int width ) {
         widths.add( width );
+    }
+
+    public void addDirectory( Node<File> directory ) {
+        if( directory!=null ) this.directories.add( directory );
+    }
+
+    public List<Node<File>> getDirectories() {
+        return directories;
     }
 
     public boolean heightsAreEqual() {
@@ -112,6 +126,11 @@ public class SGModel {
         return getWidthTo( sprites.size() );
     }
 
+    /**
+     * Cumulative width until that index.
+     * @param index
+     * @return
+     */
     public int getWidthTo( int index ) {
         int totalWidth = 0;
         if( index > sprites.size() ) index = sprites.size();
@@ -160,4 +179,32 @@ public class SGModel {
     public void setTree( Node<File> tree ) {
         this.tree = tree;
     }
+
+    public void setCurrentDirectoryIndex( int index ) {
+        this.currentDirectoryIndex = index;
+    }
+
+    public int getCurrentDirectoryIndex() {
+        return currentDirectoryIndex;
+    }
+
+    /**
+     * Increases the currentDirectoryIndex.
+     * Returns false, if the current Index is already the last element.
+     * @return
+     */
+    public boolean incDirectoryIndex() {
+        if( currentDirectoryIndex == directories.size()-1 ) return false;
+        currentDirectoryIndex++;
+        return true;
+    }
+
+    public Node<File> getCurrentDirectory() {
+        return directories.get(currentDirectoryIndex);
+    }
+
+    public void decDirectoryIndex() {
+        if( currentDirectoryIndex > 0 ) currentDirectoryIndex--;
+    }
+
 }

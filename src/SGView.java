@@ -1,6 +1,4 @@
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -15,7 +13,7 @@ import java.io.File;
 public class SGView extends JFrame implements ActionListener {
 
     public static final int WIDTH = 700;
-    public static final int HEIGHT = 1000;
+    public static final int HEIGHT = 500;
 
     private SpritesheetGenerator controller = null;
 
@@ -286,7 +284,8 @@ public class SGView extends JFrame implements ActionListener {
                 File file = new File( importDirectory );
                 if( file != null && file.exists() ) {
                     if( file.isDirectory() ) {
-                        controller.loadSprites(importDirectory);
+                        controller.loadDirectories(importDirectory);
+                        this.label_status_title.setText("--- Status --- LOADED ---");
                     }
                 }else {
                     JOptionPane.showMessageDialog( this,
@@ -297,22 +296,23 @@ public class SGView extends JFrame implements ActionListener {
                         "No source path chosen yet!" );
             }
         }else if( e.getSource() == button_start ) {
-            String exportFilePath = textField_exportFile.getText();
-            if( exportFilePath!=null && !exportFilePath.isEmpty() ) {
-                File file = new File( exportFilePath );
-                if( file!=null ) {
-                    int n = JOptionPane.OK_OPTION;
-                    if( file.exists() ) {
-                        n = JOptionPane.showConfirmDialog( this, "Output file does already exist. Overwrite?", "File already exists!", JOptionPane.OK_CANCEL_OPTION );
-                    }
-                    if( n==JOptionPane.OK_OPTION ) {
-                        controller.saveSpritesheet( exportFilePath );
-                    }
-                }
-            }else {
-                JOptionPane.showMessageDialog( this,
-                        "No destination path chosen yet!" );
-            }
+            //String exportFilePath = textField_exportFile.getText();
+            //if( exportFilePath!=null && !exportFilePath.isEmpty() ) {
+                //File file = new File( exportFilePath );
+                //if( file!=null ) {
+                    //int n = JOptionPane.OK_OPTION;
+                    //if( file.exists() ) {
+                    //    n = JOptionPane.showConfirmDialog( this, "Output file does already exist. Overwrite?", "File already exists!", JOptionPane.OK_CANCEL_OPTION );
+                    //}
+                    //if( n==JOptionPane.OK_OPTION ) {
+                        //controller.saveSpritesheet( exportFilePath );
+                        controller.saveSpriteSheets();
+                    //}
+                //}
+            //}else {
+            //    JOptionPane.showMessageDialog( this,
+            //            "No destination path chosen yet!" );
+            //}
         }else if( e.getSource() == button_ffState ) {
             button_ffState.setText( selectorText[controller.nextState()] );
             if( controller.getFfState() == SGModel.FileFilterState.CUSTOM ) {
@@ -338,6 +338,7 @@ public class SGView extends JFrame implements ActionListener {
         label_width_val.setText("");
         label_total_width_val.setText("");
         label_total_file_size_val.setText("");
+        label_status_title.setText("--- Status ---");
         //button_ffState.setText( selectorText[0] );
     }
 
