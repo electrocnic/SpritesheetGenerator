@@ -1,5 +1,8 @@
+import javafx.beans.binding.StringExpression;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
@@ -16,7 +19,7 @@ public class SpritesheetGenerator {
 
     private SGView view = null;
     private SGModel model = null;
-    private ExportPrompt exportPrompt = null;
+    private SettingsDialog dialog = null;
 
     public SpritesheetGenerator() {
         model = new SGModel( this );
@@ -43,8 +46,8 @@ public class SpritesheetGenerator {
         Node<File> tree = new Node<File>( new File(importDirectory), Node.FileType.DIRECTORY );
         tree = loadDirectories( tree, 0); //directories loaded.
         model.addDirectory( tree );
-        tree = loadSprites( tree ); //TODO Does not affect tree
-
+        loadSprites( null ); //null will remain datastructure as is
+        //"E:\\Projects\\sketches\\flea_new\\png\\final\\hdpi"
         //System.out.println( "finished" );
         model.setTree( tree );
 
@@ -102,7 +105,7 @@ public class SpritesheetGenerator {
 
     public Node<File> loadImages( Node<File> tree, String path ) {
         File directory = new File( path );
-        return loadImages( tree, directory );
+        return loadImages(tree, directory);
     }
 
     /**
@@ -228,20 +231,37 @@ public class SpritesheetGenerator {
     }
 
 
-    public Node<File> loadSprites( String path) {
-        return loadSprites(null, path);
-    }
 
     /**
      * Iterates through the list of nodes from the model (not a tree) and loads the images to their parent directory nodes.
-     * @param node
+     * @param
      * @return
      */
-    public Node<File> loadSprites( Node<File> node ) {
+    public void loadSprites( String sourcePath ) {
         List<Node<File>> directories = model.getDirectories();
-
+        File[] files = null;
         for( Node<File> directory : directories ) {
-            File[] files = directory.getData().listFiles( filter_png );
+            if( sourcePath!=null ) {
+                String str = directory.getData().getAbsolutePath(); //absolute path of image directory
+                String sourceParent = sourcePath.substring(0, sourcePath.lastIndexOf("\\")); //cut density directory
+                String strBody = "";
+                if( sourceParent.length() < str.length() ) strBody = str.substring( sourceParent.length() ); //cut beginning from image directory until its density folder.
+                //replace density with new one.
+                String[] split = strBody.split("\\\\");
+                if( split.length>0 ) {
+                    String body = "";
+                    for( int i=2; i<split.length; i++ ) {
+                        body += "\\"+split[i];
+                    }
+                    sourcePath += body;
+                    System.out.println( sourcePath );
+                }
+                File tmp = new File( sourcePath );
+                files = tmp.listFiles( filter_png );
+                directory.setData( tmp );
+            }else files = directory.getData().listFiles( filter_png );
+
+
             List<String> filenames = getSortedFileNames( files );
             System.out.println("Directory: " + directory.getData().getName() + "; Files found: " + filenames.size() );
             for( int i=0; i<filenames.size(); i++ ) {
@@ -257,27 +277,7 @@ public class SpritesheetGenerator {
         }
         System.out.println("Finished loading sprites.");
 
-        return node; //TODO: unnecessary??
-    }
-
-    private Node<File> loadSprites( Node<File> node, List<Node<File>> directories ) {
-        if( directories!=null ) {
-            for( int i=0; i<node.getDirectoryAmount(); i++ ) {
-                directories.add( null );
-            }
-        }
-        return null;
-    }
-
-    public Node<File> loadSprites( Node<File> tree, String path ) {
-        File directory = new File( path );
-        if( tree==null ) tree = new Node<File>( null, directory, Node.FileType.DIRECTORY );
-        File[] files = directory.listFiles( filter_directory );
-
-        if( files!= null && files.length!=0 ) {
-
-        }
-        return tree;
+         //TODO: return unnecessary??
     }
 
 
@@ -286,10 +286,10 @@ public class SpritesheetGenerator {
     public List<String> getSortedFileNames( File[] files ) {
         List<String> filenames = new ArrayList<>();
         for( File file : files ) {
-            filenames.add( file.getName() );
+            filenames.add(file.getName() );
         }
 
-        Collections.sort( filenames );
+        Collections.sort(filenames);
 
         return filenames;
     }
@@ -300,27 +300,19 @@ public class SpritesheetGenerator {
     public void saveSpriteSheets() {
         List<Node<File>> directories = model.getDirectories();
 
-        exportPrompt = new ExportPrompt( this );
-
-        int u=0;
-        boolean isLast=false;
-        for( Node<File> directory : directories ) {
-            if( directory.hasFiles() ) {
-                if( u==directories.size()-1 ) isLast = true;
-                exportPrompt.next( directory, isLast);
-                break;
-            }
-            u++;
-        }
+        dialog = new SettingsDialog( this );
+        resetCurrentNodeIndex();
 
     }
 
     public void nextDirectory( ) {
+        boolean k=true;
         do {
-            model.incDirectoryIndex();
-        } while ( !model.getCurrentDirectory().hasFiles() );
+            k=model.incDirectoryIndex();
+        } while ( !model.getCurrentDirectory().hasFiles() && k );
         System.out.println("directory Index: " + model.getCurrentDirectoryIndex());
-        exportPrompt.next( model.getCurrentDirectory(), model.getCurrentDirectoryIndex()==model.getDirectories().size()-1 );
+        //exportPrompt.next(model.getCurrentDirectory(), model.getCurrentDirectoryIndex() == model.getDirectories().size()-1 );
+
     }
 
 
@@ -368,6 +360,9 @@ public class SpritesheetGenerator {
 
     public void setGlobalCustomFilter( int value ) {
         model.setCustomFilterValue( value );
+        for( Node<File> node : model.getDirectories() ) {
+            if( !node.isCustomFilterChanged() ) node.setCustomFilterValue(value);
+        }
     }
 
     public SGModel.FileFilterState getFfState() {
@@ -383,47 +378,145 @@ public class SpritesheetGenerator {
     }
 
     public void previousDirectory() {
-        do{
-            model.decDirectoryIndex();
-        } while( !model.getCurrentDirectory().hasFiles() );
-        exportPrompt.next( model.getCurrentDirectory(), model.getCurrentDirectoryIndex()==model.getDirectories().size()-1 );
+        /*if( model.getCurrentDirectoryIndex()==0 ) {
+            exportPrompt.setVisible(false);
+        }else {
+            */do {
+                model.decDirectoryIndex();
+            } while (!model.getCurrentDirectory().hasFiles() && model.getCurrentDirectoryIndex() >= 0);
+            /*
+            exportPrompt.next(model.getCurrentDirectory(), model.getCurrentDirectoryIndex() == model.getDirectories().size() - 1);
+        }*/
     }
 
     public void finallyExport() {
-        for( Node<File> directory : model.getDirectories() ) {
-            if( directory.hasFiles() && directory.isActive() ) {
-                System.out.println("Active Spritesheet loading...");
-                BufferedImage finalSpriteSheet = new BufferedImage(directory.getTotalWidth(), directory.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
-                //JOptionPane.showMessageDialog( view, "totalWidth = " + totalWidth + ";  height = " + height + ";  type = " + model.getType() );
-                //JOptionPane.showMessageDialog( view, "Amount of pics: " + model.getSprites().size() +";  finalSpriteSheet Width and height: "
-                //        + finalSpriteSheet.getWidth() +", " +finalSpriteSheet.getHeight());
 
-                int cumulativeWidth = 0;
-                float startOffset = 0;
-                int customIndex = 0;
-                float nte = (float)directory.getFileAmount() / (float)directory.getCustomFilterValue();
-                startOffset = (nte-1)/2;
-                customIndex += startOffset;
-
-                for ( int i=0; i<directory.getFileAmount(); ) {
-                    System.out.println("Active Spritesheet now loads the individual images: " + i);
-                    BufferedImage image = directory.getFileAt( i ).getData();
-                    finalSpriteSheet.createGraphics().drawImage(image, cumulativeWidth, 0, null);
-                    cumulativeWidth+=image.getWidth();
-
-                    customIndex += nte;
-                    i = (int) customIndex;
-                }
-                String exportPath = directory.getDestinationPath();
-                if( !exportPath.endsWith("png")) exportPath+=".png";
-
-                try {
-                    ImageIO.write( finalSpriteSheet, "png", new File(exportPath) );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                System.out.println("Active Spritesheet exported.");
+        List<String> densityNames = new ArrayList<>();
+        List<String> densityPaths = new ArrayList<>();
+        int z=1;
+        if( view.isDensityChecked() ) {
+            //TODO load new densities and make a new loop
+            //for now: folder must have same structure.
+            File srcdir = model.getTree().getData();
+            srcdir = srcdir.getParentFile();
+            File[] densityFiles = srcdir.listFiles();
+            for( File f : densityFiles ) {
+                densityNames.add( f.getName() );
+                densityPaths.add( f.getAbsolutePath() );
             }
         }
+
+        while( !densityNames.isEmpty() ) {
+            for (Node<File> directory : model.getDirectories()) {
+                if (directory.hasFiles() && directory.isActive()) {
+                    System.out.println("Active Spritesheet loading...");
+
+                    int cumulativeWidth = 0;
+                    float startOffset = 0;
+                    float customIndex = 0;
+                    float nte = (float) directory.getFileAmount() / (float) directory.getCustomFilterValue();
+                    if (nte < 1) nte = 1;
+
+                    startOffset = (nte - 1) / 2;
+                    customIndex += startOffset;
+                    System.out.println("Custom Index = " + customIndex + "; nte = " + nte);
+
+
+                    List<BufferedImage> images = new ArrayList<>();
+                    if (directory.firstAlwaysActive() && customIndex >= 1) {
+                        BufferedImage image = (BufferedImage) directory.getFileAt(0).getData();
+                        images.add(image);
+                        cumulativeWidth += image.getWidth();
+                    }
+                    boolean lastAdded = false;
+                    int i = (int) customIndex;
+                    for (; i < directory.getFileAmount(); ) {
+                        System.out.println("Active Spritesheet now loads the individual images: " + i);
+                        BufferedImage image = directory.getFileAt(i).getData();
+                        images.add(image);
+                        if (i == directory.getFileAmount() - 1) lastAdded = true;
+                        cumulativeWidth += image.getWidth();
+                        customIndex += nte;
+                        i = (int) customIndex;
+                    }
+                    if (directory.lastAlwaysActive() && !lastAdded) {
+                        BufferedImage image = directory.getFileAt(directory.getFileAmount() - 1).getData();
+                        images.add(image);
+                        cumulativeWidth += image.getWidth();
+                    }
+                    if (!images.isEmpty()) {
+                        BufferedImage finalSpriteSheet = new BufferedImage(cumulativeWidth, images.get(0).getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
+                        cumulativeWidth = 0;
+                        for (BufferedImage image : images) {
+                            finalSpriteSheet.createGraphics().drawImage(image, cumulativeWidth, 0, null);
+                            cumulativeWidth += image.getWidth();
+                        }
+
+                        String exportPath = directory.getDestinationPath();
+                        if (!exportPath.endsWith("png")) exportPath += ".png";
+
+                        System.out.println(exportPath);
+                        try {
+                            ImageIO.write(finalSpriteSheet, "png", new File(exportPath));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        System.out.println("Active Spritesheet exported.");
+                    }
+                }
+            }
+
+            densityNames = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityNames, true );
+            densityPaths = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityPaths, false );
+            if( !densityNames.isEmpty() ) {
+                updateDirectoriesWithNewSrcDensity( densityNames.get(0) );
+            }
+        }
+    }
+
+    private void updateDirectoriesWithNewSrcDensity( String densityPath ) {
+        model.releaseFiles();
+        loadSprites( densityPath ); //TODO: debug and test.
+    }
+
+    private List<String> removeDensity( Node<File> tree, List<String> names, boolean sh ) {
+        int i=0;
+        while( !names.isEmpty() && i<names.size() && !names.get(i).equalsIgnoreCase( sh?tree.getData().getName():tree.getData().getAbsolutePath() )) i++;
+        System.out.println( "Names[i]=" + names.get(i) + "; Head of tree: " + tree.getData().getAbsolutePath() );
+        names.remove(i);
+        return names;
+    }
+
+    public void resetCurrentNodeIndex() {
+        model.setCurrentDirectoryIndex(0);
+    }
+
+    public SGView getView() {
+        return view;
+    }
+
+    public boolean isLast() {
+        return model.getCurrentDirectoryIndex() == model.getDirectories().size()-1;
+    }
+
+    public boolean isFirst() {
+        return model.getCurrentDirectoryIndex()==0;
+    }
+
+    public void setGlobalExportDirectory(String directory) {
+        model.setGlobalExportDirectory( directory );
+        for( Node<File> node : model.getDirectories() ) {
+            if( !node.isCustomDirectoryChanged() ) node.setDestinationPath(directory);
+        }
+    }
+
+    public String getGlobalExportPath() {
+        return view.getGlobalExportPath();
+    }
+
+    public String getCurrentIndex() {
+        String index = "";
+        if( model.getCurrentDirectoryIndex()<10 ) index+="0";
+        return index+=model.getCurrentDirectoryIndex();
     }
 }

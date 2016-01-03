@@ -18,6 +18,8 @@ public class SGModel {
     private int customFilterValue = 30; //global custom file filter for all spritesheets equally.
 
     private int currentDirectoryIndex = 0;
+    private String globalExportDirectory = "";
+
 
 
     public enum FileFilterState {
@@ -48,6 +50,14 @@ public class SGModel {
         ffstate = FileFilterState.ALL;
     }
 
+    public void setGlobalExportDirectory(String directory) {
+        this.globalExportDirectory = directory;
+    }
+
+    public String getGlobalExportDirectory() {
+        return this.globalExportDirectory;
+    }
+
     public int nextState() {
         ffstate = ffstate.next();
         return ffstate.ordinal();
@@ -63,6 +73,12 @@ public class SGModel {
         widths = new ArrayList<>();
         directories = new ArrayList<>();
         //ffstate = FileFilterState.ALL;
+    }
+
+    public void releaseFiles() {
+        for( Node<File> directory : directories ) {
+            if( directory.hasFiles() ) directory.clearFiles();
+        }
     }
 
     public List<BufferedImage> getSprites() {
@@ -200,6 +216,7 @@ public class SGModel {
     }
 
     public Node<File> getCurrentDirectory() {
+        if(directories==null || directories.isEmpty()) return null;
         return directories.get(currentDirectoryIndex);
     }
 

@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 public class JIntegerField extends JTextField {
 
     static ActionListener listener = null;
+    boolean virtualInput = false;
 
     public JIntegerField() {
         super();
@@ -35,6 +36,8 @@ public class JIntegerField extends JTextField {
     protected Document createDefaultModel() {
         return new UpperCaseDocument( this );
     }
+
+
 
     static class UpperCaseDocument extends PlainDocument {
 
@@ -58,18 +61,32 @@ public class JIntegerField extends JTextField {
             for ( int i = 0; i < chars.length; i++ ) {
 
                 try {
-                    Integer.parseInt( String.valueOf( chars[i] ) );
+                    Integer.parseUnsignedInt(String.valueOf(chars[i]));
                 } catch ( NumberFormatException exc ) {
                     ok = false;
                     break;
                 }
             }
 
-            if ( ok )
-                super.insertString( offs, new String( chars ), a );
+            if ( ok ) {
+                super.insertString(offs, new String(chars), a);
 
-            if( listener != null )
-                listener.actionPerformed( new ActionEvent( master, 1, "changed" ) );
+                if (listener != null && !master.virtualInput)
+                    listener.actionPerformed(new ActionEvent(master, 1, "changed"));
+            }
         }
+
+
+    }
+
+    /**
+     *
+     * @param string
+     */
+    @Override
+    public void setText( String string ) {
+        virtualInput = true;
+        super.setText( string );
+        virtualInput = false;
     }
 }

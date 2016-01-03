@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -13,7 +14,7 @@ import java.io.File;
 public class SGView extends JFrame implements ActionListener {
 
     public static final int WIDTH = 700;
-    public static final int HEIGHT = 500;
+    public static final int HEIGHT = 420;
 
     private SpritesheetGenerator controller = null;
 
@@ -24,10 +25,10 @@ public class SGView extends JFrame implements ActionListener {
     private JButton button_importDirectory = null;
     private JPanel panel_importDirectory = null;
 
-    private JLabel label_exportFile = null;
-    private JTextField textField_exportFile = null;
+    //private JLabel label_exportFile = null;
+    //private JTextField textField_exportFile = null;
     private JButton button_exportFile = null;
-    private JPanel panel_exportFile = null;
+    //private JPanel panel_exportFile = null;
 
     private JLabel label_globalSettings = null;
 
@@ -44,6 +45,8 @@ public class SGView extends JFrame implements ActionListener {
     private JLabel label_image_count_val = null;
     private JLabel label_total_file_size = null;
     private JLabel label_total_file_size_val = null;
+    private JLabel label_densities_title = null;
+    private JLabel label_globalExport = null;
 
     private static final String[] selectorText = { "Selecting ALL files...", "Selecting EVEN files...", "Selecting ODD files...", "Select n files evenly:" };
 
@@ -54,12 +57,18 @@ public class SGView extends JFrame implements ActionListener {
 
     private JLabel label_image_preview = null;
 
+    private JCheckBox checkBox_densities = null;
+    private JTextField textField_globalExport = null;
+    private JLabel label_autoname = null;
+    private JCheckBox checkBox_globalExportAutoName = null;
+
 
     public SGView( SpritesheetGenerator controller ) {
         this.controller = controller;
 
         setResizable(false);
         setSize(WIDTH, HEIGHT);
+        //this.setBounds( 5, 5, WIDTH-5, HEIGHT-5 );
 
 
 
@@ -79,10 +88,10 @@ public class SGView extends JFrame implements ActionListener {
         button_importDirectory.addActionListener(this);
         JPanel panel_importDirectory_fileChooser = new JPanel( new BorderLayout(5,5));
 
-        panel_importDirectory = new JPanel( new BorderLayout(5,5) );
+        panel_importDirectory = new JPanel( new BorderLayout( 5,5 ) );
 
         panel_importDirectory_fileChooser.add(textField_importDirectory, BorderLayout.CENTER);
-        panel_importDirectory_fileChooser.add(button_importDirectory, BorderLayout.EAST);
+
 
         panel_importDirectory.add(label_importDirectory, BorderLayout.NORTH);
         panel_importDirectory.add( panel_importDirectory_fileChooser, BorderLayout.CENTER );
@@ -116,23 +125,29 @@ public class SGView extends JFrame implements ActionListener {
         panel_export.add(panel_exportFile, BorderLayout.NORTH);
         */
 
-        label_globalSettings = new JLabel("Global Settings:");
+        label_globalSettings = new JLabel("--- Global Settings ---");
 
 
 
 
-        button_ffState = new JButton( selectorText[0] );
-        button_ffState.addActionListener(this);
+        //button_ffState = new JButton( selectorText[0] );
+        //button_ffState.addActionListener(this);
         textField_customFilter = new JIntegerField( controller.getCustomFilterValue() );
         textField_customFilter.setName("314159");
         textField_customFilter.setActionListener(this);
-        textField_customFilter.setVisible(false);
+        //textField_customFilter.setVisible(false);
         textField_customFilter.setPreferredSize(new Dimension(100, 25));
 
 
         button_load = new JButton("Load");
         button_load.addActionListener(this);
         button_load.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JLabel label_globalCustomFilter = new JLabel("Global Custom Filter:");
+        JPanel panel_customPhilter = new JPanel( new BorderLayout(5,5));
+        panel_customPhilter.add( label_globalCustomFilter, BorderLayout.WEST );
+        panel_customPhilter.add( textField_customFilter, BorderLayout.EAST );
+
 
 
 
@@ -173,37 +188,78 @@ public class SGView extends JFrame implements ActionListener {
         panel_totalFileSize.add( label_total_file_size, BorderLayout.WEST );
         panel_totalFileSize.add( label_total_file_size_val, BorderLayout.EAST );
 
+        label_densities_title = new JLabel("Copy settings to other density directories?");
+        checkBox_densities = new JCheckBox("Duplicate Densities", false);
+        JPanel panel_density = new JPanel( new BorderLayout(5,5));
+        panel_density.add( label_densities_title, BorderLayout.WEST );
+        panel_density.add( checkBox_densities, BorderLayout.EAST );
+
+
+        label_autoname = new JLabel("Auto-Name every Spritesheet with xx_spritesheet_subdirectoryname.png?");
+        checkBox_globalExportAutoName = new JCheckBox("Auto-Name");
+        JPanel panel_autoname = new JPanel( new BorderLayout(5,5));
+        panel_autoname.add( label_autoname, BorderLayout.WEST );
+        panel_autoname.add( checkBox_globalExportAutoName, BorderLayout.EAST );
+
+        label_globalExport = new JLabel("Global Export Directory");
+        textField_globalExport = new JTextField();
+        button_exportFile = new JButton("Browse");
+        button_exportFile.addActionListener( this );
+        JPanel panel_exportTitle = new JPanel( new BorderLayout(5,5));
+        JPanel panel_globalExport = new JPanel( new BorderLayout(5,5));
+        panel_globalExport.add( textField_globalExport, BorderLayout.CENTER );
+        panel_globalExport.add( button_exportFile, BorderLayout.EAST );
+        panel_exportTitle.add( label_globalExport, BorderLayout.NORTH );
+        panel_exportTitle.add( panel_globalExport, BorderLayout.CENTER );
+
+
         button_start = new JButton("Render");
         button_start.addActionListener(this);
         button_start.setHorizontalAlignment(SwingConstants.CENTER);
 
         /** Layout for Status **/
 
-        JPanel twoButtons = new JPanel();
+        JPanel twoButtons = new JPanel( new BorderLayout(5,5));
         //twoButtons.add( button_ffState );
         //twoButtons.add( textField_customFilter );
-        twoButtons.add( button_load );
+        twoButtons.add( button_importDirectory, BorderLayout.CENTER );
+        twoButtons.add( button_load, BorderLayout.EAST );
+        panel_importDirectory_fileChooser.add(twoButtons, BorderLayout.EAST);
 
         JPanel load_GlobalSettings = new JPanel(new BorderLayout(5,5));
-        load_GlobalSettings.add( twoButtons, BorderLayout.NORTH );
-        load_GlobalSettings.add( label_globalSettings, BorderLayout.CENTER );
+        //load_GlobalSettings.add( twoButtons, BorderLayout.NORTH );
+        load_GlobalSettings.add( label_globalSettings, BorderLayout.WEST );
+
 
         JPanel load_globalSettings_Button = new JPanel(new BorderLayout(5,5));
-        JPanel global_settings_Button = new JPanel();
-        global_settings_Button.add( button_ffState );
-        global_settings_Button.add( textField_customFilter );
+        //JPanel global_settings_Button = new JPanel();
+        //global_settings_Button.add( button_ffState );
+        //global_settings_Button.add( textField_customFilter );
         load_globalSettings_Button.add( load_GlobalSettings, BorderLayout.NORTH );
-        load_globalSettings_Button.add( global_settings_Button, BorderLayout.CENTER );
+        load_globalSettings_Button.add( panel_customPhilter, BorderLayout.CENTER );
+
 
         JPanel panel_loadButton_statusTitle = new JPanel( new BorderLayout(5,5));
         panel_loadButton_statusTitle.add( load_globalSettings_Button, BorderLayout.NORTH );
-        panel_loadButton_statusTitle.add( label_status_title, BorderLayout.CENTER );
+        panel_loadButton_statusTitle.add( panel_density, BorderLayout.CENTER );
+
+        JPanel panel_autoname_load = new JPanel(new BorderLayout(5,5));
+        panel_autoname_load.add( panel_loadButton_statusTitle, BorderLayout.NORTH );
+        panel_autoname_load.add( panel_autoname, BorderLayout.CENTER );
+
+        JPanel panel_densityLoad = new JPanel( new BorderLayout(5,5));
+        panel_densityLoad.add( panel_autoname_load, BorderLayout.NORTH );
+        panel_densityLoad.add( panel_exportTitle, BorderLayout.CENTER );
+
+        JPanel panel_densityExport = new JPanel( new BorderLayout(5,5));
+        panel_densityExport.add( panel_densityLoad, BorderLayout.NORTH );
+        panel_densityExport.add( label_status_title, BorderLayout.CENTER );
 
         //TODO add scrollbars somewhere. and the rest.
 
 
         JPanel panel_2_ImageCount = new JPanel( new BorderLayout(5,5));
-        panel_2_ImageCount.add( panel_loadButton_statusTitle, BorderLayout.NORTH );
+        panel_2_ImageCount.add( panel_densityExport, BorderLayout.NORTH );
         panel_2_ImageCount.add( panel_imageCount );
 
         JPanel panel_3_width = new JPanel( new BorderLayout(5,5));
@@ -247,6 +303,7 @@ public class SGView extends JFrame implements ActionListener {
         last_imageprev.add( directories_statusField, BorderLayout.NORTH );
         last_imageprev.add( label_image_preview, BorderLayout.CENTER );
 
+        last_imageprev.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.add(last_imageprev);
 
 
@@ -269,14 +326,15 @@ public class SGView extends JFrame implements ActionListener {
                 textField_importDirectory.setText( file.getAbsolutePath() );
             }
         }else if( e.getSource() == button_exportFile ) {
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            checkBox_globalExportAutoName.setSelected( true );
             fileChooser.setAcceptAllFileFilterUsed( false );
             FileFilter imageFilter = new FileNameExtensionFilter( "PNG", "png" );
             fileChooser.addChoosableFileFilter( imageFilter );
             int retVal = fileChooser.showSaveDialog( this );
             if( retVal == JFileChooser.APPROVE_OPTION ) {
                 File file = fileChooser.getSelectedFile();
-                textField_exportFile.setText( file.getAbsolutePath() );
+                textField_globalExport.setText( file.getAbsolutePath() );
             }
         }else if( e.getSource() == button_load ) {
             String importDirectory = textField_importDirectory.getText();
@@ -306,6 +364,8 @@ public class SGView extends JFrame implements ActionListener {
                     //}
                     //if( n==JOptionPane.OK_OPTION ) {
                         //controller.saveSpritesheet( exportFilePath );
+            controller.setGlobalExportDirectory( textField_globalExport.getText() );
+            controller.setGlobalCustomFilter( Integer.parseInt( textField_customFilter.getText() ));
                         controller.saveSpriteSheets();
                     //}
                 //}
@@ -366,5 +426,14 @@ public class SGView extends JFrame implements ActionListener {
     public void setTotalFileSize(int fileSize) {
         label_total_file_size_val.setText(""+fileSize+" kB");
         this.repaint();
+    }
+
+    public String getGlobalExportPath() {
+        if( !textField_globalExport.getText().isEmpty() ) checkBox_globalExportAutoName.setSelected( true );
+        return textField_globalExport.getText();
+    }
+
+    public boolean isDensityChecked() {
+        return checkBox_densities.isSelected();
     }
 }

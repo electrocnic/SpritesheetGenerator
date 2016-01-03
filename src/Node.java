@@ -12,10 +12,21 @@ public class Node<T> {
     private List<Node> files=null;
     private List<Node<File>> directories=null;
     private FileType type = null;
-    private int customFilterValue = 1; //local custom file filter, only for this spritesheet.
+    private int customFilterValue = 0; //local custom file filter, only for this spritesheet.
     private int totalFileSize = 0;
     private String destinationPath = "";
     private boolean isActive = true;
+    private boolean lastAlwaysActive = true;
+    private boolean firstAlwaysActive = true;
+    private List<Integer> customIndizes = null;
+
+    private boolean customFilterChanged = false;
+    private boolean customDirectoryChanged = false;
+
+    private String pathHead = "";
+    private String pathBody = "";
+
+
 
     public enum FileType {
         FILE,
@@ -27,7 +38,7 @@ public class Node<T> {
     }
 
     public Node( Node<File> parent, T data, FileType type ) {
-        this( parent, data, type, null, null, 1, 0, "" );
+        this( parent, data, type, null, null, 0, 0, "" );
     }
 
     public Node( Node<File> parent, T data, FileType type, List<Node> files, List<Node<File>> directories, int customFilterValue, int totalFileSize, String destinationPath ) {
@@ -49,10 +60,39 @@ public class Node<T> {
         this.customFilterValue = customFilterValue;
         this.totalFileSize = totalFileSize;
         this.destinationPath = destinationPath;
+        this.customIndizes = new ArrayList<>();
     }
 
     public Node( Node<T> node ) {
         this(node.parent, node.data, node.type, node.files, node.directories, node.customFilterValue, node.totalFileSize, node.destinationPath);
+    }
+
+    public String getPathBody() {
+        return pathBody;
+    }
+
+    public void setPathBody(String pathBody) {
+        this.pathBody = pathBody;
+    }
+
+    public String getPathHead() {
+        return pathHead;
+    }
+
+    public void setPathHead(String pathHead) {
+        this.pathHead = pathHead;
+    }
+
+    public boolean isCustomDirectoryChanged() {
+        return customDirectoryChanged;
+    }
+
+    public void setCustomDirectoryChanged(boolean customDirectoryChanged) {
+        this.customDirectoryChanged = customDirectoryChanged;
+    }
+
+    public void clearFiles() {
+        this.files = new ArrayList<>();
     }
 
     public void addFile( Node node ) {
@@ -136,7 +176,9 @@ public class Node<T> {
     }
 
     public void setCustomFilterValue( int value ) {
-        this.customFilterValue = value;
+        if( value > files.size() ) this.customFilterValue = files.size();
+        else if (value < 0) this.customFilterValue=0;
+        else this.customFilterValue = value;
     }
 
     public int getCustomFilterValue() {
@@ -201,9 +243,93 @@ public class Node<T> {
         return width;
     }
 
+    /**
+     * Recalculates the custom Filter dependent cumulative width of the sprites in this directory.
+     * Thus it also resets and updates the indizes list.
+     * @return
+     */
+    public int getCustomWidth() {
+        int cumulativeWidth = 0;
+        customIndizes = new ArrayList<>();
+        if( this.type==FileType.DIRECTORY && hasFiles() ) {
+            float startOffset = 0;
+            float customIndex = 0;
+            float nte = (float) files.size() / (float) customFilterValue;
+            if (nte < 1) nte = 1;
+
+            startOffset = (nte - 1) / 2;
+            customIndex += startOffset;
+
+            List<BufferedImage> images = new ArrayList<>();
+            BufferedImage image=null;
+            if (firstAlwaysActive && customIndex >= 1) {
+                image = (BufferedImage) files.get(0).getData();
+                images.add( image );
+                cumulativeWidth+=image.getWidth();
+                customIndizes.add( 0 );
+            }
+            boolean lastAdded = false;
+            int i = (int)customIndex;
+            for ( ; i < getFileAmount(); ) {
+                System.out.println("Active Spritesheet now loads the individual images: " + i + ",  nte = " + nte + ",  customIndex = " + customIndex);
+                image = getFileAt(i).getData();
+                customIndizes.add( i );
+                images.add(image);
+                if (i == getFileAmount() - 1) lastAdded = true;
+                cumulativeWidth += image.getWidth();
+                customIndex += nte;
+                i = (int) customIndex;
+            }
+            if( lastAlwaysActive() && !lastAdded ) {
+                image = getFileAt(getFileAmount() - 1).getData();
+                customIndizes.add( getFileAmount() - 1 );
+                images.add( image );
+                cumulativeWidth += image.getWidth();
+            }
+        }
+        return cumulativeWidth;
+    }
+
+    public List<Integer> getCustomIndizes() {
+        getCustomWidth();
+        return customIndizes;
+    }
+
     public int getHeight() {
-        if( files!=null && !files.isEmpty() ) return files.get(0).getHeight(); //TODO resolve empty array error?!
-        else return 0;
+        if( this.type==FileType.DIRECTORY ) {
+            if (files != null && !files.isEmpty()) {
+                BufferedImage image = (BufferedImage) files.get(0).getData();
+                return image.getHeight();
+            }
+        }else if( this.type==FileType.FILE ) {
+            BufferedImage image = (BufferedImage)data;
+            if( image!=null ) return image.getHeight();
+        }
+        return 0;
+    }
+
+    public boolean firstAlwaysActive() {
+        return firstAlwaysActive;
+    }
+
+    public void setFirstAlwaysActive( boolean isActive ) {
+        this.firstAlwaysActive = isActive;
+    }
+
+    public boolean lastAlwaysActive() {
+        return lastAlwaysActive;
+    }
+
+    public void setLastAlwaysActive( boolean isActive ) {
+        this.lastAlwaysActive = isActive;
+    }
+
+    public boolean isCustomFilterChanged() {
+        return customFilterChanged;
+    }
+
+    public void setCustomFilterChanged(boolean customFilterChanged) {
+        this.customFilterChanged = customFilterChanged;
     }
 }
 
