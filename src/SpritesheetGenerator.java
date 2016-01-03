@@ -259,7 +259,7 @@ public class SpritesheetGenerator {
                 }
                 File tmp = new File( finalPath );
                 files = tmp.listFiles( filter_png );
-                //directory.setData( tmp );
+                directory.setData( tmp );
             }else {
                 finalPath = directory.getData().getAbsolutePath();
                 files = directory.getData().listFiles( filter_png );
@@ -477,7 +477,7 @@ public class SpritesheetGenerator {
             }
 
             //densityPaths = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityNames, true );
-            densityPaths = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityPaths, false );
+            if( !densityPaths.isEmpty() ) densityPaths = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityPaths );
             if( !densityPaths.isEmpty() ) {
                 updateDirectoriesWithNewSrcDensity( densityPaths.get(0) );
                 d++;
@@ -510,10 +510,10 @@ public class SpritesheetGenerator {
         loadSprites( densityPath ); //TODO: debug and test.
     }
 
-    private List<String> removeDensity( Node<File> tree, List<String> names, boolean sh ) {
+    private List<String> removeDensity( Node<File> tree, List<String> names ) {
         int i=0;
-        while( !names.isEmpty() && i<names.size() && !names.get(i).equalsIgnoreCase( sh?tree.getData().getName():tree.getData().getAbsolutePath() )) i++;
-        System.out.println( "Names[i]=" + names.get(i) + "; Head of tree: " + tree.getData().getAbsolutePath() );
+        while( !names.isEmpty() && i<names.size() && !names.get(i).equalsIgnoreCase( tree.getData().getAbsolutePath() )) i++;
+        //System.out.println( "Names[i]=" + names.get(i) + "; Head of tree: " + tree.getData().getAbsolutePath() );
         names.remove(i);
         return names;
     }

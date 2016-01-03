@@ -262,8 +262,8 @@ public class ExportPrompt extends JPanel implements ActionListener{
             if( !node.isCustomDirectoryChanged() && !controller.getGlobalExportPath().isEmpty()  ) {
                 //autoname: export global given. custom did not change yet.
                 path = controller.getGlobalExportPath()+File.separator;
-                path += controller.getCurrentIndex();
-                path += "_spritesheet_";
+                path += "spritesheet_";
+                path += controller.getCurrentIndex() +"_";
                 if( node.getParent() != null ) path += node.getParent().getData().getName();
                 node.setDestinationPath( path.toLowerCase() );
             }
