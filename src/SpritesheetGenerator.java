@@ -237,13 +237,14 @@ public class SpritesheetGenerator {
      * @param
      * @return
      */
-    public void loadSprites( String sourcePath ) {
+    public void loadSprites( String absoluteSourceDensityPath ) {
         List<Node<File>> directories = model.getDirectories();
         File[] files = null;
         for( Node<File> directory : directories ) {
-            if( sourcePath!=null ) {
+            String finalPath = "";
+            if( absoluteSourceDensityPath!=null ) {
                 String str = directory.getData().getAbsolutePath(); //absolute path of image directory
-                String sourceParent = sourcePath.substring(0, sourcePath.lastIndexOf("\\")); //cut density directory
+                String sourceParent = absoluteSourceDensityPath.substring(0, absoluteSourceDensityPath.lastIndexOf("\\")); //cut density directory
                 String strBody = "";
                 if( sourceParent.length() < str.length() ) strBody = str.substring( sourceParent.length() ); //cut beginning from image directory until its density folder.
                 //replace density with new one.
@@ -253,20 +254,23 @@ public class SpritesheetGenerator {
                     for( int i=2; i<split.length; i++ ) {
                         body += "\\"+split[i];
                     }
-                    sourcePath += body;
-                    System.out.println( sourcePath );
+                    finalPath += absoluteSourceDensityPath + body;
+                    System.out.println( finalPath );
                 }
-                File tmp = new File( sourcePath );
+                File tmp = new File( finalPath );
                 files = tmp.listFiles( filter_png );
-                directory.setData( tmp );
-            }else files = directory.getData().listFiles( filter_png );
+                //directory.setData( tmp );
+            }else {
+                finalPath = directory.getData().getAbsolutePath();
+                files = directory.getData().listFiles( filter_png );
+            }
 
 
             List<String> filenames = getSortedFileNames( files );
             System.out.println("Directory: " + directory.getData().getName() + "; Files found: " + filenames.size() );
             for( int i=0; i<filenames.size(); i++ ) {
                 String name = filenames.get(i);
-                File file = new File( directory.getData().getAbsolutePath() + File.separator + name );
+                File file = new File( finalPath + File.separator + name );
                 BufferedImage img = null;
                 try{
                     img = ImageIO.read( file );
@@ -282,15 +286,14 @@ public class SpritesheetGenerator {
 
 
 
-
     public List<String> getSortedFileNames( File[] files ) {
         List<String> filenames = new ArrayList<>();
-        for( File file : files ) {
-            filenames.add(file.getName() );
+        if( files != null ) {
+            for (File file : files) {
+                filenames.add(file.getName());
+            }
+            Collections.sort(filenames);
         }
-
-        Collections.sort(filenames);
-
         return filenames;
     }
 
@@ -391,7 +394,7 @@ public class SpritesheetGenerator {
 
     public void finallyExport() {
 
-        List<String> densityNames = new ArrayList<>();
+        //List<String> densityNames = new ArrayList<>();
         List<String> densityPaths = new ArrayList<>();
         int z=1;
         if( view.isDensityChecked() ) {
@@ -401,12 +404,13 @@ public class SpritesheetGenerator {
             srcdir = srcdir.getParentFile();
             File[] densityFiles = srcdir.listFiles();
             for( File f : densityFiles ) {
-                densityNames.add( f.getName() );
+                //densityNames.add( f.getName() );
                 densityPaths.add( f.getAbsolutePath() );
             }
         }
 
-        while( !densityNames.isEmpty() ) {
+        int d=0;
+        while( !densityPaths.isEmpty() ) {
             for (Node<File> directory : model.getDirectories()) {
                 if (directory.hasFiles() && directory.isActive()) {
                     System.out.println("Active Spritesheet loading...");
@@ -453,6 +457,12 @@ public class SpritesheetGenerator {
                         }
 
                         String exportPath = directory.getDestinationPath();
+
+                        if(d>0) {
+                            String currentDensityPath = densityPaths.get(0);
+                            exportPath = getDuplicateDensityExportPath(exportPath, currentDensityPath);
+                        }
+
                         if (!exportPath.endsWith("png")) exportPath += ".png";
 
                         System.out.println(exportPath);
@@ -466,12 +476,33 @@ public class SpritesheetGenerator {
                 }
             }
 
-            densityNames = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityNames, true );
+            //densityPaths = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityNames, true );
             densityPaths = removeDensity( model.getDirectories().get(model.getDirectories().size()-1), densityPaths, false );
-            if( !densityNames.isEmpty() ) {
-                updateDirectoriesWithNewSrcDensity( densityNames.get(0) );
+            if( !densityPaths.isEmpty() ) {
+                updateDirectoriesWithNewSrcDensity( densityPaths.get(0) );
+                d++;
             }
         }
+    }
+
+    public String getDuplicateDensityExportPath( String originalExportPath, String newDensityPath ) {
+        if( newDensityPath!=null ) {
+            String str = originalExportPath; //absolute path of image directory
+            String sourceParent = newDensityPath.substring(0, newDensityPath.lastIndexOf("\\")); //cut density directory
+            String strBody = "";
+            if( sourceParent.length() < str.length() ) strBody = str.substring( sourceParent.length() ); //cut beginning from image directory until its density folder.
+            //replace density with new one.
+            String[] split = strBody.split("\\\\");
+            if( split.length>0 ) {
+                String body = "";
+                for( int i=2; i<split.length; i++ ) {
+                    body += "\\"+split[i];
+                }
+                newDensityPath += body;
+                System.out.println( newDensityPath );
+            }
+        }
+        return newDensityPath;
     }
 
     private void updateDirectoriesWithNewSrcDensity( String densityPath ) {
